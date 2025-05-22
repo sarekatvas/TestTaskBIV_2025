@@ -1,5 +1,4 @@
 package com.example.Model;
-import java.math.BigDecimal;
 import java.util.UUID;
 import org.hibernate.annotations.GenericGenerator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,6 +13,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "products")
 public class Product extends PanacheEntityBase {
+    // идентификатор товара
+    @SuppressWarnings("deprecation")
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
@@ -21,15 +22,19 @@ public class Product extends PanacheEntityBase {
     @JsonProperty(access = Access.READ_ONLY)
     public UUID id;
     
+    // наименование товара
     @Column(nullable = false)
     public String name;
     
+    // дополнительная информация
     @Column
     public String description;
     
+    // цена за единицу продукции
     @Column(nullable = false)
-    public BigDecimal price;
+    public Double price;
     
+    // количество на складе
     @Column(nullable = false)
     public Integer quantity;
 }

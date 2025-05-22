@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE TABLE IF NOT EXISTS order_items (
     id UUID PRIMARY KEY,
-    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    order_id UUID REFERENCES orders(id),
     product_id UUID NOT NULL,  
     quantity INT NOT NULL CHECK (quantity > 0),
     price NUMERIC(10,2) NOT NULL CHECK (price >= 0)

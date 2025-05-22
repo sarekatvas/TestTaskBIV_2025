@@ -11,20 +11,16 @@ import jakarta.ws.rs.core.Response;
 import com.example.Inventory.InventoryService;
 import com.example.Model.*;
 import com.example.Repository.OrderRepository;
+import com.example.dto.ProductDto;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.example.Enum.*;
-import com.example.dto.ProductDto;
 
 @Path("/orders") 
 @Produces(MediaType.APPLICATION_JSON)
@@ -51,38 +47,38 @@ public class OrderResource {
     }
 
     @POST
-@Transactional
-public Response createOrder(OrderR orderRequest) {
-    try {
-        Order order = new Order();
-        //order.id = UUID.randomUUID();
-        order.customerName = orderRequest.customerName;
-        order.customerEmail = orderRequest.customerEmail;
-        order.createdAt = Instant.now();
-        order.status = OrderStatus.CREATED;
+    @Transactional
+    public Response createOrder(OrderR orderRequest) {
+        try {
+            Order order = new Order();
+            //order.id = UUID.randomUUID();
+            order.customerName = orderRequest.customerName;
+            order.customerEmail = orderRequest.customerEmail;
+            order.createdAt = Instant.now();
+            order.status = OrderStatus.CREATED;
 
-        // Создаем элементы заказа
-        for (OrderItemRequest itemRequest : orderRequest.items) {
-            OrderItem item = new OrderItem();
-            item.id = UUID.randomUUID(); // Генерируем новый UUID для позиции
-            item.productId = itemRequest.productId;
-            item.quantity = itemRequest.quantity;
+            // Создаем элементы заказа
+            for (OrderItemRequest itemRequest : orderRequest.items) {
+                ProductDto product = inventoryService.getProductById(itemRequest.productId);
+                OrderItem item = new OrderItem();
+                item.productId = itemRequest.productId;
+                item.quantity = itemRequest.quantity;
+                item.price = BigDecimal.valueOf(product.price); 
+                item.order = order;
+                
+                order.items.add(item);
+            }
+
+            // Сохраняем заказ
+            orderRepository.persist(order);
             
-            // Связываем позицию с заказом
-            item.order = order; 
-            order.items.add(item);
+            return Response.status(Response.Status.CREATED).entity(order).build();
+        } catch (Exception e) {
+            return Response.serverError()
+                .entity(Map.of("error", "Error creating order: " + e.getMessage()))
+                .build();
         }
-
-        // Сохраняем заказ (каскад сохранит элементы)
-        orderRepository.persist(order);
-        
-        return Response.status(Response.Status.CREATED).entity(order).build();
-    } catch (Exception e) {
-        return Response.serverError()
-            .entity(Map.of("error", "Error creating order: " + e.getMessage()))
-            .build();
     }
-}
 
     public static class OrderR {
         public String customerName;
@@ -93,5 +89,6 @@ public Response createOrder(OrderR orderRequest) {
     public static class OrderItemRequest {
         public UUID productId;
         public Integer quantity;
+        //public BigDecimal price;
     }
 }
