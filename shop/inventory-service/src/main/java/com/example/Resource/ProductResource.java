@@ -13,6 +13,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.Produces;
+
+import java.util.Map;
 import java.util.UUID;
 
 @Path("/api/products")
@@ -32,24 +34,34 @@ public class ProductResource {
     @GET
     @Path("/{id}")
     public Response getProductById(@PathParam("id") UUID id) {
-        
-        return productRepository.findByIdOptional(id)
-            .map(product -> Response.ok(product).build())
-            .orElse(Response.status(Response.Status.NOT_FOUND).build());
+        try{
+            return productRepository.findByIdOptional(id)
+                .map(product -> Response.ok(product).build())
+                .orElse(Response.status(Response.Status.NOT_FOUND).build());
+        }
+        catch(Exception e){
+        return Response.serverError().
+        entity(Map.of("error","Ошибка при получении товара: "+ e.getMessage())).build();
+       }
     }
     
     @POST
     @Transactional
     public Response createProduct(Product product) {
+        try{
         productRepository.persist(product);
         return Response.status(Response.Status.CREATED).entity(product).build();
+    }catch(Exception e){
+        return Response.serverError().
+        entity(Map.of("error","Ошибка при добавлении заказа: "+ e.getMessage())).build();
+       }
     }
     
     @PUT
     @Transactional
     @Path("/{id}")
     public Response updateProduct(@PathParam("id") UUID id, Product product) {
-       
+       try{
         return productRepository.findByIdOptional(id)
             .map(existingProduct -> {
                 existingProduct.name = product.name;
@@ -60,18 +72,27 @@ public class ProductResource {
                 return Response.ok(existingProduct).build();
             })
             .orElse(Response.status(Response.Status.NOT_FOUND).build());
+        }catch(Exception e){
+        return Response.serverError().
+        entity(Map.of("error","Ошибка при изменении заказа: "+ e.getMessage())).build();
+       }
     }
     
     @DELETE
     @Path("/{id}")
     @Transactional
     public Response deleteProduct(@PathParam("id") UUID id){
+        try{
         return productRepository.findByIdOptional(id)
         .map(product -> {
             productRepository.delete(product);
             return Response.ok(product).build();
         })
         .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }catch(Exception e){
+        return Response.serverError().
+        entity(Map.of("error","Ошибка при удалении заказа: "+ e.getMessage())).build();
+       }
     }
 
 }

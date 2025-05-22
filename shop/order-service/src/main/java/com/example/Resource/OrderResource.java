@@ -2,6 +2,7 @@ package com.example.Resource;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -13,13 +14,13 @@ import com.example.Model.*;
 import com.example.Repository.OrderRepository;
 import com.example.dto.ProductDto;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-
 import com.example.Enum.*;
 
 @Path("/orders") 
@@ -41,9 +42,15 @@ public class OrderResource {
     @GET
     @Path("/{id}")
     public Response getOrderById(@PathParam("id") UUID id){
+        try{
         return orderRepository.findByIdOptional(id)
-        .map(order ->Response.ok(order).build())
-        .orElse(Response.status(Response.Status.NOT_FOUND).build());
+            .map(order ->Response.ok(order).build())
+            .orElse(Response.status(Response.Status.NOT_FOUND).build());
+        }
+       catch(Exception e){
+        return Response.serverError().
+        entity(Map.of("error","Ошибка при получении заказа: "+ e.getMessage())).build();
+       }
     }
 
     @POST
@@ -60,6 +67,14 @@ public class OrderResource {
             // Создаем элементы заказа
             for (OrderItemRequest itemRequest : orderRequest.items) {
                 ProductDto product = inventoryService.getProductById(itemRequest.productId);
+
+                if(product == null){
+                    throw new WebApplicationException("Заказ не найден: "+ itemRequest.productId, Response.Status.BAD_REQUEST);
+                }
+                if(product.quantity<itemRequest.quantity){
+                    throw new WebApplicationException("На складе недостаточно товара: "+ itemRequest.quantity, Response.Status.BAD_REQUEST);
+                }
+
                 OrderItem item = new OrderItem();
                 item.productId = itemRequest.productId;
                 item.quantity = itemRequest.quantity;
@@ -75,9 +90,28 @@ public class OrderResource {
             return Response.status(Response.Status.CREATED).entity(order).build();
         } catch (Exception e) {
             return Response.serverError()
-                .entity(Map.of("error", "Error creating order: " + e.getMessage()))
+                .entity(Map.of("error", "Ошибка при создании заказа: " + e.getMessage()))
                 .build();
         }
+    }
+
+    @DELETE
+    @Transactional
+    @Path("/{id}")
+    public Response deleteOrder(@PathParam("id") UUID id){
+        try{
+        Order order = orderRepository.findByIdOptional(id).
+        orElseThrow(() -> new WebApplicationException("Заказ не найден",Response.Status.NOT_FOUND));
+
+        for (OrderItem item: order.items){
+            inventoryService.cancelReservation(item.productId, item.quantity);
+        }
+        return Response.ok((order)).build();
+    }
+    catch(Exception e){
+        return Response.serverError().
+        entity(Map.of("error","Ошибка при удалении заказа: "+ e.getMessage())).build();
+    }
     }
 
     public static class OrderR {
