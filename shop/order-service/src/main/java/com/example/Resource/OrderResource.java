@@ -17,6 +17,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -79,7 +80,7 @@ public class OrderResource {
             order.customerEmail = orderRequest.customerEmail;
             order.createdAt = Instant.now();
             order.status = OrderStatus.CREATED;
-            log.info("Создание заказа для пользователя: {}", order.getEmail());
+            
             // Создаем элементы заказа
             for (OrderItemRequest itemRequest : orderRequest.items) {
                 log.debug("Обработка товара {} (количество: {})",  itemRequest.productId, itemRequest.quantity);
@@ -103,7 +104,6 @@ public class OrderResource {
 
             // Сохраняем заказ
             orderRepository.persist(order);
-            log.info("Заказ успешно создан. ID: {}", order.id);
             
             return Response.status(Response.Status.CREATED).entity(order).build();
         } catch (Exception e) {
@@ -134,5 +134,16 @@ public class OrderResource {
         entity(Map.of("error","Ошибка при удалении заказа: "+ e.getMessage())).build();
     }
     }
+    
+public static class OrderRequest {
+    public String customerName;
+    public String customerEmail;
+    public List<OrderItemRequest> items;
+}
+
+public static class OrderItemRequest {
+    public UUID productId;
+    public Integer quantity;
+}
 
 }

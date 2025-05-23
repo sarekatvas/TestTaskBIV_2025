@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
  * Сущность заказа
  */
 @Entity
-@Table(name = "orders")
+@Table(name = "Orders1")
 public class Order extends PanacheEntityBase {
     @Id
     @GeneratedValue
@@ -44,7 +44,7 @@ public class Order extends PanacheEntityBase {
     public OrderStatus status;
 
     // продукция в заказе 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER,  orphanRemoval = true)
     @JsonManagedReference 
     public List<OrderItem> items = new ArrayList<>();
 

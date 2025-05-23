@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
  */
 
 @Entity
-@Table(name = "order_items")
+@Table(name = "Order_items1")
 public class OrderItem extends PanacheEntityBase {
     @Id
     @GeneratedValue
