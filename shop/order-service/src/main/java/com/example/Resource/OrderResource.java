@@ -12,22 +12,26 @@ import jakarta.ws.rs.core.Response;
 import com.example.Inventory.InventoryService;
 import com.example.Model.*;
 import com.example.Repository.OrderRepository;
-import com.example.dto.ProductDto;
+
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import com.example.Enum.*;
+import com.example.dto.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/orders") 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class OrderResource {
+    private static final Logger log = LoggerFactory.getLogger(OrderResource.class);
+
     @Inject
     OrderRepository orderRepository;
     
@@ -49,10 +53,12 @@ public class OrderResource {
     )
     @Path("/{id}")
     public Response getOrderById(@PathParam("id") UUID id){
+        log.info("Поиск заказа по ID: {}", id);
         try{
         return orderRepository.findByIdOptional(id)
-            .map(order ->Response.ok(order).build())
+            .map(order -> Response.ok(order).build())
             .orElse(Response.status(Response.Status.NOT_FOUND).build());
+            
         }
        catch(Exception e){
         return Response.serverError().
@@ -65,7 +71,7 @@ public class OrderResource {
         summary = "Добавить новый заказ"
     )
     @Transactional
-    public Response createOrder(OrderR orderRequest) {
+    public Response createOrder(OrderRequest orderRequest) {
         try {
             Order order = new Order();
             //order.id = UUID.randomUUID();
@@ -73,9 +79,10 @@ public class OrderResource {
             order.customerEmail = orderRequest.customerEmail;
             order.createdAt = Instant.now();
             order.status = OrderStatus.CREATED;
-
+            log.info("Создание заказа для пользователя: {}", order.getEmail());
             // Создаем элементы заказа
             for (OrderItemRequest itemRequest : orderRequest.items) {
+                log.debug("Обработка товара {} (количество: {})",  itemRequest.productId, itemRequest.quantity);
                 ProductDto product = inventoryService.getProductById(itemRequest.productId);
 
                 if(product == null){
@@ -96,6 +103,7 @@ public class OrderResource {
 
             // Сохраняем заказ
             orderRepository.persist(order);
+            log.info("Заказ успешно создан. ID: {}", order.id);
             
             return Response.status(Response.Status.CREATED).entity(order).build();
         } catch (Exception e) {
@@ -125,17 +133,6 @@ public class OrderResource {
         return Response.serverError().
         entity(Map.of("error","Ошибка при удалении заказа: "+ e.getMessage())).build();
     }
-    }
-
-    public static class OrderR {
-        public String customerName;
-        public String customerEmail;
-        public List<OrderItemRequest> items;
-    }
-    
-    public static class OrderItemRequest {
-        public UUID productId;
-        public Integer quantity;
     }
 
 }

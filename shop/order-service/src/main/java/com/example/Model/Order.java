@@ -51,6 +51,13 @@ public class Order extends PanacheEntityBase {
     public Order() {
     }
 
+    public UUID getId(){
+        return id;
+    }
+
+    public String getEmail(){
+        return customerEmail;
+    }
 }
 
 

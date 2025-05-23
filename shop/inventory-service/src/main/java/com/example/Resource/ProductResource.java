@@ -108,5 +108,4 @@ public class ProductResource {
         entity(Map.of("error","Ошибка при удалении товара: "+ e.getMessage())).build();
        }
     }
-
 }
