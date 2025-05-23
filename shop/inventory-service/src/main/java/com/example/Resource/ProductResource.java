@@ -13,9 +13,9 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.Produces;
-
 import java.util.Map;
 import java.util.UUID;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 
 @Path("/api/products")
 @Produces(MediaType.APPLICATION_JSON)
@@ -26,12 +26,17 @@ public class ProductResource {
     ProductRepository productRepository;
     
     @GET
+    @Operation(
+        summary = "Посмотреть все товары"
+    )
     public Response getAllProducts() {
-        
         return Response.ok(productRepository.listAll()).build();
     }
     
     @GET
+     @Operation(
+        summary = "Посмотреть товар по ID"
+    )
     @Path("/{id}")
     public Response getProductById(@PathParam("id") UUID id) {
         try{
@@ -46,6 +51,9 @@ public class ProductResource {
     }
     
     @POST
+     @Operation(
+        summary = "Добавить новый товар"
+    )
     @Transactional
     public Response createProduct(Product product) {
         try{
@@ -53,12 +61,15 @@ public class ProductResource {
         return Response.status(Response.Status.CREATED).entity(product).build();
     }catch(Exception e){
         return Response.serverError().
-        entity(Map.of("error","Ошибка при добавлении заказа: "+ e.getMessage())).build();
+        entity(Map.of("error","Ошибка при добавлении товара: "+ e.getMessage())).build();
        }
     }
     
     @PUT
     @Transactional
+     @Operation(
+        summary = "Изменить товар"
+    )
     @Path("/{id}")
     public Response updateProduct(@PathParam("id") UUID id, Product product) {
        try{
@@ -74,11 +85,14 @@ public class ProductResource {
             .orElse(Response.status(Response.Status.NOT_FOUND).build());
         }catch(Exception e){
         return Response.serverError().
-        entity(Map.of("error","Ошибка при изменении заказа: "+ e.getMessage())).build();
+        entity(Map.of("error","Ошибка при изменении товара: "+ e.getMessage())).build();
        }
     }
     
     @DELETE
+     @Operation(
+        summary = "Удалить товар по ID"
+    )
     @Path("/{id}")
     @Transactional
     public Response deleteProduct(@PathParam("id") UUID id){
@@ -91,7 +105,7 @@ public class ProductResource {
         .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }catch(Exception e){
         return Response.serverError().
-        entity(Map.of("error","Ошибка при удалении заказа: "+ e.getMessage())).build();
+        entity(Map.of("error","Ошибка при удалении товара: "+ e.getMessage())).build();
        }
     }
 

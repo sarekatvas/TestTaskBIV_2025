@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import com.example.Enum.*;
 
@@ -35,11 +36,17 @@ public class OrderResource {
     InventoryService inventoryService;
 
     @GET
-    public Response getAllOrders(){
+    @Operation(
+        summary = "Посмотреть все заказы"
+    )
+    public Response getAllOrders() {
         return Response.ok(orderRepository.listAll()).build();
     }
 
     @GET
+    @Operation(
+        summary = "Посмотреть заказ по ID"
+    )
     @Path("/{id}")
     public Response getOrderById(@PathParam("id") UUID id){
         try{
@@ -54,6 +61,9 @@ public class OrderResource {
     }
 
     @POST
+    @Operation(
+        summary = "Добавить новый заказ"
+    )
     @Transactional
     public Response createOrder(OrderR orderRequest) {
         try {
@@ -96,6 +106,9 @@ public class OrderResource {
     }
 
     @DELETE
+    @Operation(
+        summary = "Удалить заказ по ID"
+    )
     @Transactional
     @Path("/{id}")
     public Response deleteOrder(@PathParam("id") UUID id){
@@ -123,6 +136,6 @@ public class OrderResource {
     public static class OrderItemRequest {
         public UUID productId;
         public Integer quantity;
-        //public BigDecimal price;
     }
+
 }

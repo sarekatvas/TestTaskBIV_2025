@@ -1,9 +1,7 @@
 package com.example.Model;
 import java.math.BigDecimal;
 import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +11,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Сущность товара в заказе
+ */
 
 @Entity
 @Table(name = "order_items")
@@ -28,7 +29,7 @@ public class OrderItem extends PanacheEntityBase {
     @Column (name="product_id", nullable = false)
     public UUID productId;
     
-    // количество
+    // количество 
     @Column(nullable = false)
     public Integer quantity;
 

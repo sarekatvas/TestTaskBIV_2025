@@ -10,6 +10,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Сущность товара
+*/
 @Entity
 @Table(name = "products")
 public class Product extends PanacheEntityBase {
@@ -22,7 +25,7 @@ public class Product extends PanacheEntityBase {
     @JsonProperty(access = Access.READ_ONLY)
     public UUID id;
     
-    // наименование товара
+    // наименование товара. Генерируется автоматически. Только для чтения
     @Column(nullable = false)
     public String name;
     
